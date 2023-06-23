@@ -55,7 +55,7 @@ router.get('/:postId', async (req, res) => {
   try {
     const { postId } = req.params;
     const post = await Posts.findOne({
-      attributes: ['postId', 'UserId', 'nickname', 'title', 'createdAt', 'updatedAt'],
+      attributes: ['postId', 'UserId', 'nickname', 'title', 'content', 'createdAt', 'updatedAt'],
       where: { postId },
     });
 
