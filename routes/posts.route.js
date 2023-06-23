@@ -36,18 +36,11 @@ router.post('/', authMiddleware, async (req, res) => {
 // 작성 날짜 기준으로 내림차순 정렬하기
 router.get('/', async (req, res) => {
   try {
-    const posts = await Posts.find({}).sort({ createdAt: -1 });
-    const data = posts.map((post) => {
-      return {
-        postId: post._id,
-        userId: post.userId,
-        nickname: post.nickname,
-        title: post.title,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-      };
+    const posts = await Posts.findAll({
+      attributes: ['postId', 'UserId', 'nickname', 'title', 'createdAt', 'updatedAt'],
+      order: [['createdAt', 'DESC']],
     });
-    return res.json({ posts: data });
+    return res.status(200).json({ posts });
   } catch (error) {
     console.error(`Error: ${error.message}`);
     return res.status(400).json({
@@ -58,27 +51,18 @@ router.get('/', async (req, res) => {
 
 // 3. 게시글 상세 조회 GET
 // 제목, 작성자명(nickname), 작성 날짜, 작성 내용을 조회하기
-router.get('/:_postId', async (req, res) => {
+router.get('/:postId', async (req, res) => {
   try {
-    const { _postId } = req.params;
-    const post = await Posts.find({ _id: _postId });
+    const { postId } = req.params;
+    const post = await Posts.findOne({
+      attributes: ['postId', 'UserId', 'nickname', 'title', 'createdAt', 'updatedAt'],
+      where: { postId },
+    });
 
-    if (post.length === 1) {
-      const [result] = post.map((post) => {
-        const { _id: postId, userId, nickname, title, content, createdAt, updatedAt } = post;
-        return {
-          postId,
-          userId,
-          nickname,
-          title,
-          content,
-          createdAt,
-          updatedAt,
-        };
-      });
-      res.status(200).json({ result });
-    } else {
+    if (!post) {
       res.status(400).json({ errorMessage: '게시글이 존재하지 않습니다.' });
+    } else {
+      res.status(200).json({ post: result });
     }
   } catch (error) {
     console.error(`Error: ${error.message}`);
