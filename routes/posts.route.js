@@ -62,7 +62,7 @@ router.get('/:postId', async (req, res) => {
     if (!post) {
       res.status(400).json({ errorMessage: '게시글이 존재하지 않습니다.' });
     } else {
-      res.status(200).json({ post: result });
+      res.status(200).json({ post });
     }
   } catch (error) {
     console.error(`Error: ${error.message}`);
