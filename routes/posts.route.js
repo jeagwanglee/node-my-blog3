@@ -111,17 +111,17 @@ router.put('/:postId', authMiddleware, async (req, res) => {
 });
 
 // 게시글 삭제 DELETE
-router.delete('/:_postId', authMiddleware, async (req, res) => {
+router.delete('/:postId', authMiddleware, async (req, res) => {
   try {
-    const { _postId } = req.params;
-    const post = await Posts.find({ _id: _postId });
+    const { postId } = req.params;
+    const post = await Posts.findOne({ where: { postId } });
 
     // 게시글이 존재하지 않을 경우 404
-    if (post.length === 0) {
+    if (!post) {
       return res.status(404).json({ errorMessage: '게시글 조회에 실패하였습니다.' });
     } else {
       try {
-        await Posts.deleteOne({ _id: _postId });
+        await Posts.destroy({ where: { postId } });
         res.status(200).json({ message: '게시글을 삭제하였습니다.' });
       } catch (error) {
         res.status(401).json({ errorMessage: '게시글이 정상적으로 삭제되지 않았습니다.' });
