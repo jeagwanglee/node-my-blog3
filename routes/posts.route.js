@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Post = require('../schemas/post.js');
+const { Posts } = require('../models');
 const authMiddleware = require('../middlewares/auth-middleware.js');
 
 //  1. 게시글 작성 POST
@@ -10,7 +10,7 @@ const authMiddleware = require('../middlewares/auth-middleware.js');
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { title, content } = req.body;
-    const { userId, nickname } = res.locals.user;
+    const { userId: UserId, nickname } = res.locals.user;
 
     if (!title || !content) {
       res.status(412).json({ errorMessage: '데이터 형식이 올바르지 않습니다.' });
@@ -19,9 +19,9 @@ router.post('/', authMiddleware, async (req, res) => {
     } else if (typeof content !== 'string') {
       res.status(412).json({ errorMessage: '게시글 내용의 형식이 일치하지 않습니다.' });
     } else {
-      const post = new Post({ userId, nickname, title, content });
+      const post = new Posts({ UserId, nickname, title, content });
       await post.save();
-      res.status(200).json({ message: '게시글 작성에 성공했습니다.' });
+      res.status(201).json({ message: '게시글 작성에 성공했습니다.' });
     }
   } catch (error) {
     console.error(`Error: ${error.message}`);
@@ -36,7 +36,7 @@ router.post('/', authMiddleware, async (req, res) => {
 // 작성 날짜 기준으로 내림차순 정렬하기
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find({}).sort({ createdAt: -1 });
+    const posts = await Posts.find({}).sort({ createdAt: -1 });
     const data = posts.map((post) => {
       return {
         postId: post._id,
@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
 router.get('/:_postId', async (req, res) => {
   try {
     const { _postId } = req.params;
-    const post = await Post.find({ _id: _postId });
+    const post = await Posts.find({ _id: _postId });
 
     if (post.length === 1) {
       const [result] = post.map((post) => {
@@ -91,7 +91,7 @@ router.put('/:_postId', authMiddleware, async (req, res) => {
   try {
     const { _postId } = req.params;
     const { title, content } = req.body;
-    const existPost = await Post.find({ _id: _postId });
+    const existPost = await Posts.find({ _id: _postId });
 
     if (!title || !content) {
       res.status(412).json({ errorMessage: '데이터 형식이 올바르지 않습니다.' });
@@ -103,7 +103,7 @@ router.put('/:_postId', authMiddleware, async (req, res) => {
       return res.status(404).json({ errorMessage: '게시글 조회에 실패하였습니다.' });
     } else {
       try {
-        await Post.updateOne({ _id: _postId }, { $set: { title, content } });
+        await Posts.updateOne({ _id: _postId }, { $set: { title, content } });
         res.status(200).json({ message: '게시글을 수정하였습니다.' });
       } catch (error) {
         res.status(401).json({ errorMessage: '게시글이 정상적으로 수정되지 않았습니다.' });
@@ -119,14 +119,14 @@ router.put('/:_postId', authMiddleware, async (req, res) => {
 router.delete('/:_postId', authMiddleware, async (req, res) => {
   try {
     const { _postId } = req.params;
-    const post = await Post.find({ _id: _postId });
+    const post = await Posts.find({ _id: _postId });
 
     // 게시글이 존재하지 않을 경우 404
     if (post.length === 0) {
       return res.status(404).json({ errorMessage: '게시글 조회에 실패하였습니다.' });
     } else {
       try {
-        await Post.deleteOne({ _id: _postId });
+        await Posts.deleteOne({ _id: _postId });
         res.status(200).json({ message: '게시글을 삭제하였습니다.' });
       } catch (error) {
         res.status(401).json({ errorMessage: '게시글이 정상적으로 삭제되지 않았습니다.' });
