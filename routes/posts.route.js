@@ -71,23 +71,34 @@ router.get('/:postId', async (req, res) => {
 });
 
 // 게시글 수정 PUT
-router.put('/:_postId', authMiddleware, async (req, res) => {
+router.put('/:postId', authMiddleware, async (req, res) => {
   try {
-    const { _postId } = req.params;
+    const { postId } = req.params;
     const { title, content } = req.body;
-    const existPost = await Posts.find({ _id: _postId });
+    const post = await Posts.findOne({ where: { postId } });
+    console.log(post);
 
     if (!title || !content) {
       res.status(412).json({ errorMessage: '데이터 형식이 올바르지 않습니다.' });
-    } else if (typeof title !== 'string') {
+      return;
+    }
+
+    if (typeof title !== 'string') {
       res.status(412).json({ errorMessage: '게시글 제목의 형식이 일치하지 않습니다.' });
-    } else if (typeof content !== 'string') {
+      return;
+    }
+
+    if (typeof content !== 'string') {
       res.status(412).json({ errorMessage: '게시글 내용의 형식이 일치하지 않습니다.' });
-    } else if (existPost.length === 0) {
-      return res.status(404).json({ errorMessage: '게시글 조회에 실패하였습니다.' });
+      return;
+    }
+
+    if (!post) {
+      res.status(404).json({ errorMessage: '게시글 조회에 실패하였습니다.' });
+      return;
     } else {
       try {
-        await Posts.updateOne({ _id: _postId }, { $set: { title, content } });
+        await Posts.update({ title, content }, { where: { postId } });
         res.status(200).json({ message: '게시글을 수정하였습니다.' });
       } catch (error) {
         res.status(401).json({ errorMessage: '게시글이 정상적으로 수정되지 않았습니다.' });
