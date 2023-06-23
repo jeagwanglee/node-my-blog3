@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../schemas/user.js');
+const { Users } = require('../models');
 
 // 로그인 API
 
@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
     //닉네임, 비밀번호를 request에서 전달받기
     const { nickname, password } = req.body;
 
-    const user = await User.findOne({ nickname });
+    const user = await Users.findOne({ nickname });
 
     // 해당하는 유저가 존재하지 않는 경우
     if (!user || password !== user.password) {
