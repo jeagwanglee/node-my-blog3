@@ -9,8 +9,7 @@ router.post('/', async (req, res) => {
   try {
     //닉네임, 비밀번호를 request에서 전달받기
     const { nickname, password } = req.body;
-
-    const user = await Users.findOne({ nickname });
+    const user = await Users.findOne({ where: { nickname } });
 
     // 해당하는 유저가 존재하지 않는 경우
     if (!user || password !== user.password) {
